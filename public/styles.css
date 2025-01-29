@@ -1,0 +1,141 @@
+/* 全体のリセット */
+body, h1, h2, h3, p, ul, li, a, form, input, textarea, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f9f9f9;
+    color: #333;
+    padding: 0;
+    margin: 0;
+}
+
+/* ヘッダー */
+header {
+    background-color: #550000;
+    color: #fff;
+    padding: 10px 0;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header h1 img {
+    max-width: 200px; /* 画像の最大幅 */
+    height: auto; /* 高さを自動調整 */
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+}
+
+header nav ul li {
+    margin: 0 15px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    font-family:serif;
+}
+
+header nav ul li a:hover {
+    text-decoration: underline;
+}
+
+/* セクション */
+.section {
+    padding: 40px 20px;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+.section:nth-child(even) {
+    background-color: #f0f0f0;
+}
+
+.section .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section h2 {
+    font-size: 28px;
+    font-family:serif;
+    margin-bottom: 20px;
+    color: #000000;
+}
+
+.section p, .section ul {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.section ul {
+    list-style: disc inside;
+}
+
+#gazo {
+    padding: 0px 0; /* 画像の上下のスペース */
+}
+
+#news {
+    background-color: #f9f9f9; /* 背景色 */
+    padding: 40px 0; /* セクションの上下のスペース */
+}
+
+#news .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.news-item {
+    background-color: white;
+    border: 1px solid #ddd; /* ボーダー */
+    padding: 20px;
+    margin-bottom: 20px; /* 各お知らせの間にスペース */
+    border-radius: 8px; /* 角を丸める */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 軽い影 */
+}
+
+.news-item h3 {
+    font-size: 20px;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+.news-item p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* フッター */
+footer {
+    background-color: #550000;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+}
+
+footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
