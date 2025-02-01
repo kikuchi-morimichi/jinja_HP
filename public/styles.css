@@ -36,7 +36,7 @@ header .container img {
 }
 @media screen and (max-width: 480px) {
     header .container img {
-        max-width: 100px; /* 画像の最大幅 */
+        max-width: 120px; /* 画像の最大幅 */
         height: auto; /* 高さを自動調整 */
     }
 }
@@ -122,12 +122,23 @@ header nav ul li a:hover {
 
 #news {
     background-color: #f9f9f9; /* 背景色 */
-    padding: 40px 0; /* セクションの上下のスペース */
 }
 
 #news .container {
     max-width: 1200px;
     margin: 0 auto;
+}
+.news-more {
+    text-align: right;
+    color: 00000;
+    font-size: 20px;
+}
+@media screen and (max-width: 480px) {
+    .news-more {
+        text-align: right;
+        color: 00000;
+        font-size: 14px;
+    }
 }
 
 .news-item {
@@ -189,4 +200,14 @@ footer .container {
     }
 }
 
+iframe {
+    width: 700px; /* 画像の最大幅 */
+    height: 500px; /* 高さを自動調整 */
+}
+@media screen and (max-width: 480px) {
+    iframe {
+        width: 95%; /* 画像の最大幅 */
+        height: 300px; /* 高さを自動調整 */
+    }
+}
 
