@@ -1,6 +1,941 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linuxコマンド学習ターミナル — ls編</title>
+  <style>
+    /* CSSは変更なし */
+    :root {
+      --color-bg: #0e0f12;
+      --color-terminal-bg: #0a0b0e;
+      --color-text: #e8e8e8;
+      --color-dimmed-text: #9aa0a6;
+      --color-border: #1f2937;
+      --color-card-bg: #12141a;
+      --color-header-bg: #0b0c10;
+      --color-input-bg: #0a0b0e; /* ターミナル背景と同じに変更 */
+      --color-button-bg: #111827;
+      --color-button-border-hover: #334155;
+
+      --color-green-accent: #00d27a;
+      --color-red-accent: #ff4d4f;
+      --color-yellow-accent: #facc15;
+      --color-blue-accent: #60a5fa;
+      --color-input-text: #ffffff;
+      --color-badge-text: #93c5fd;
+
+      --dot-red: #ff5f56;
+      --dot-yellow: #ffbd2e;
+      --dot-green: #27c93f;
+
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-xl: 20px;
+
+      --border-radius-sm: 6px;
+      --border-radius-md: 8px;
+      --border-radius-lg: 10px;
+      --border-radius-full: 999px;
+
+      --font-size-sm: 12px;
+      --font-size-base: 14px;
+      --font-size-md: 16px;
+    }
+
+    /* Ubuntu Theme Variables */
+    body.ubuntu-theme {
+      --color-bg: #2c001e;
+      --color-terminal-bg: #300a24;
+      --color-text: #eeeeec;
+      --color-dimmed-text: #aaa;
+      --color-border: #000000;
+      --color-card-bg: #1a0b16;
+      --color-header-bg: #1a0b16;
+      --color-input-bg: #300a24;
+
+      --color-red-accent: #cc0000;
+      --color-yellow-accent: #c4a000;
+      --color-blue-accent: #3465a4;
+      --color-input-text: #ffffff;
+      --color-badge-text: #729fcf;
+    }
+
+    /* Light Theme Variables */
+    body.light-theme {
+      --color-bg: #f0f2f5;
+      --color-terminal-bg: #ffffff;
+      --color-text: #333333;
+      --color-dimmed-text: #6b7280;
+      --color-border: #d1d5db;
+      --color-card-bg: #ffffff;
+      --color-header-bg: #e5e7eb;
+      --color-input-bg: #ffffff;
+
+      --color-green-accent: #10b981;
+      --color-red-accent: #ef4444;
+      --color-yellow-accent: #f59e0b;
+      --color-blue-accent: #3b82f6;
+      --color-input-text: #000000;
+      --color-badge-text: #1d4ed8;
+
+      --dot-red: #ef4444;
+      --dot-yellow: #f59e0b;
+      --dot-green: #22c55e;
+    }
+
+
+    /* Reset and Base Styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font: var(--font-size-base) / 1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* ==================== */
+    /* 1. Layout            */
+    /* ==================== */
+
+    .page-header {
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-header-bg);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-header__title {
+      margin: 0;
+      font-size: var(--font-size-md);
+      letter-spacing: 0.2px;
+      flex-shrink: 0;
+    }
+
+    .page-header__right-items {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-lg);
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: var(--spacing-lg);
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: var(--spacing-lg);
+    }
+
+    @media (max-width: 900px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==================== */
+    /* 2. Components        */
+    /* ==================== */
+
+    /* Card */
+    .card {
+      background: var(--color-card-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card__title {
+      margin: 0;
+      padding: var(--spacing-md) 14px;
+      border-bottom: 1px solid var(--color-border);
+      font-size: var(--font-size-base);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card__timer {
+      color: var(--color-dimmed-text);
+      font-size: var(--font-size-base);
+      font-weight: normal; /* h3の太さを継承しないように */
+    }
+
+    .card__body {
+      padding: var(--spacing-md) 14px;
+      color: var(--color-dimmed-text);
+      /* flexboxを適用し、要素を縦に並べる */
+      display: flex;
+      flex-direction: column;
+      /* problem-card内で可能な限り高さを取るようにする */
+      flex-grow: 1;
+      /* ★★★ 変更点 ★★★ */
+      /* コンテンツがはみ出た場合にスクロールバーを表示 */
+      overflow-y: auto;
+    }
+
+    /* Problem Card Specific */
+    .problem-card {
+      display: flex;
+      flex-direction: column;
+      /* ★★★ 変更点 ★★★ */
+      /* 高さを固定せず、最小の高さを指定 */
+      min-height: 480px;
+    }
+
+    .problem-text {
+      /* この要素がcard__body内で余白を埋めるように伸びる */
+      flex-grow: 1; 
+      margin-bottom: var(--spacing-md);
+      min-height: 80px;
+      color: var(--color-text);
+    }
+
+    .solution-display {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--color-border);
+      color: var(--color-text);
+      white-space: pre-wrap;
+    }
+
+
+    /* Terminal */
+    .terminal {
+      background: var(--color-terminal-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      /* ★★★ 修正箇所 START ★★★ */
+      height: 480px;       /* 高さを固定 (min-heightから変更) */
+      resize: vertical;    /* 垂直方向のリサイズを許可 */
+      overflow: hidden;    /* 内部のはみ出しを隠す (autoから変更) */
+      /* ★★★ 修正箇所 END ★★★ */
+    }
+
+    .terminal__header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-header-bg);
+      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+      flex-shrink: 0; /* ヘッダーが縮まないように */
+    }
+
+    .terminal__dot {
+      width: var(--spacing-md);
+      height: var(--spacing-md);
+      border-radius: 50%;
+    }
+
+    .terminal__dot--red { background: var(--dot-red); }
+    .terminal__dot--yellow { background: var(--dot-yellow); }
+    .terminal__dot--green { background: var(--dot-green); }
+
+    .terminal__app-name {
+      color: var(--color-dimmed-text);
+      margin-left: var(--spacing-sm);
+    }
+
+    .terminal__screen {
+      padding: var(--spacing-md);
+      flex-grow: 1;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      background: var(--color-input-bg);
+    }
+
+    .terminal__prompt-line {
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+      padding-bottom: 2px; /* 少しだけ間隔を空ける */
+    }
+
+    .terminal__prompt {
+      color: var(--color-green-accent);
+      font-weight: bold;
+    }
+
+    .terminal__input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--color-input-text);
+      font: inherit;
+    }
+    
+    /* 実行済みのコマンドライン用 */
+    .executed-command {
+        color: var(--color-text);
+    }
+
+    /* ==================== */
+    /* 3. Utility & Helpers */
+    /* ==================== */
+
+    .button-group {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      margin-top: var(--spacing-sm);
+    }
+
+    .button {
+      background: var(--color-button-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text);
+      padding: 6px 10px;
+      font: inherit;
+      cursor: pointer;
+      transition: border-color 0.2s ease-in-out;
+    }
+
+    .button:hover {
+      border-color: var(--color-button-border-hover);
+    }
+
+    .theme-select {
+      background: var(--color-button-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text);
+      padding: 6px 10px;
+      font: inherit;
+      cursor: pointer;
+      transition: border-color 0.2s ease-in-out;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="%23e8e8e8" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 16px;
+      padding-right: 30px;
+    }
+
+    .theme-select:hover {
+      border-color: var(--color-button-border-hover);
+    }
+
+    .theme-select option {
+      background-color: var(--color-button-bg);
+      color: var(--color-text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px var(--spacing-sm);
+      border: 1px solid #334155;
+      border-radius: var(--border-radius-full);
+      font-size: var(--font-size-sm);
+      margin-left: var(--spacing-sm);
+      color: var(--color-badge-text);
+    }
+
+    /* Console Text Colors */
+    .text--success { color: var(--color-green-accent); }
+    .text--error { color: var(--color-red-accent); }
+    .text--hint { color: var(--color-yellow-accent); }
+    .text--explanation { color: #ffffff; }
+    .text--muted { color: var(--color-dimmed-text); }
+    .text--problem-num { color: var(--color-blue-accent); font-weight: bold; }
+
+    /* Light Theme specific text colors */
+    body.light-theme .text--explanation { color: #000000; }
+    body.light-theme .text--hint { color: #b45309; }
+    body.light-theme .text--problem-num { color: #2563eb; }
+
+
+    /* Light Theme specific button styles */
+    body.light-theme .button {
+    background: #ffffff;
+    border: 1px solid #9ca3af;
+    color: #1f2937;
+    }
+
+    body.light-theme .button:hover {
+    background: #f3f4f6;
+    border-color: #6b7280;
+    }
+
+    /* Light Theme specific dropdown styles */
+    body.light-theme .theme-select {
+    background: #ffffff;
+    border: 1px solid #9ca3af;
+    color: #1f2937;
+    }
+
+
+
+    body.light-theme .theme-select:hover {
+    background: #f3f4f6;
+    border-color: #6b7280;
+    }
+
+    body.light-theme .theme-select option {
+    background: #ffffff;
+    color: #1f2937;
+    }
+
+    .kbd {
+      display: inline-block;
+      border: 1px solid #374151;
+      border-bottom-width: 2px;
+      border-radius: var(--border-radius-sm);
+      padding: 0 6px;
+      margin: 0 2px;
+      color: #e5e7eb;
+    }
+
+    /* ==================== */
+    /* 4. Theme Specific Adjustments */
+    /* ==================== */
+    body.ubuntu-theme .page-header {
+      border-bottom-color: #333;
+    }
+
+    body.light-theme .page-header {
+      border-bottom-color: var(--color-border);
+    }
+
+    body.light-theme .kbd {
+      background-color: #e5e7eb;
+      color: #374151;
+      border-color: #9ca3af;
+    }
+    
+    body.powershell-theme .terminal__prompt {
+      color: var(--color-text);
+    }
+
+    body.powershell-theme .text--explanation {
+      color: var(--color-text);
+    }
+
+    body.powershell-theme {
+      --color-bg: #000c1b;
+      --color-terminal-bg: #012456;
+      --color-text: #cccccc;
+      --color-dimmed-text: #999999;
+      --color-border: #2a4e8a;
+      --color-card-bg: #011c40;
+      --color-header-bg: #000000;
+      --color-input-bg: #012456;
+
+      --color-green-accent: #16c60c;
+      --color-red-accent: #c50f1f;
+      --color-yellow-accent: #f9f1a5;
+      --color-blue-accent: #3b78ff;
+      --color-input-text: #f9f1a5;
+      --color-badge-text: #3b78ff;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1 class="page-header__title">Linuxコマンド学習ターミナル <span class="badge">ls オプション編</span></h1>
+    <div class="page-header__right-items">
+      <select id="themeSelect" class="theme-select">
+        <option value="default">デフォルトテーマ</option>
+        <option value="ubuntu">Ubuntu風テーマ</option>
+        <option value="light">ライトテーマ</option>
+        <option value="powershell">PowerShell風テーマ</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="main-content">
+      <aside class="card problem-card">
+        <h3 class="card__title">
+          <span>問題 / ヒント</span>
+          <div id="timer" class="card__timer">00:00</div>
+        </h3>
+        <div class="card__body">
+          <div id="problem" class="problem-text">読み込み中...</div>
+          <div id="solutionDisplay" class="solution-display" style="display: none;"></div>
+          <div class="button-group">
+            <button id="hintBtn" class="button">ヒント</button>
+            <button id="showAnsBtn" class="button">答えを見る</button>
+            <button id="skipBtn" class="button">スキップ</button>
+            <button id="resetBtn" class="button">リセット</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="terminal" aria-label="practice terminal">
+        <div class="terminal__header">
+          <span class="terminal__dot terminal__dot--red"></span>
+          <span class="terminal__dot terminal__dot--yellow"></span>
+          <span class="terminal__dot terminal__dot--green"></span>
+          <span class="terminal__app-name">bash</span>
+        </div>
+        <div id="screen" class="terminal__screen" role="log" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const problems = [
+        {
+          id: 1,
+          question: "隠しファイルを含めてすべてのファイルを表示してください。",
+          answers: ["ls -a"],
+          explanation: "ls -a で '.' や '..' を含めた隠しファイルを表示できます。",
+          output: ".  ..  test.txt  -test.txt  docs"
+        },
+        {
+          id: 2,
+          question: "ファイルやディレクトリの詳細情報（パーミッション・サイズなど）を表示してください。",
+          answers: ["ls -l"],
+          explanation: "ls -l で詳細情報付きのリスト表示ができます。",
+          output: "-rw-r--r-- 1 user user   120 Sep  6 12:00 test.txt\n-rw-r--r-- 1 user user   512 Sep  6 12:05 -test.txt\ndrwxr-xr-x 2 user user  4096 Sep  6 12:10 docs"
+        },
+        {
+          id: 3,
+          question: "隠しファイルを含め、詳細情報（パーミッション・サイズなど）を表示してください。",
+          answers: ["ls -la", "ls -al"],
+          explanation: "ls -la または ls -al で隠しファイルを含む詳細リスト表示ができます。",
+          output: "drwxr-xr-x   3 user user  4096 Sep  6 12:15 .\ndrwxr-xr-x  22 user user  4096 Sep  6 12:15 ..\n-rw-r--r--   1 user user   120 Sep  6 12:00 test.txt\n-rw-r--r--   1 user user   512 Sep  6 12:05 -test.txt\ndrwxr-xr-x   2 user user  4096 Sep  6 12:10 docs"
+        }
+      ];
+
+      class TerminalApp {
+        // ===============
+        // 0. Constants
+        // ===============
+        static CONSTANTS = {
+          TERMINAL_HISTORY_LIMIT: 50,
+          THEME_STORAGE_KEY: 'linux-terminal-theme',
+          THEME_CLASSES: ["ubuntu-theme", "light-theme", "powershell-theme"],
+          PROMPT_TEXT: 'user@linux:~$',
+          CSS_CLASSES: {
+            SUCCESS: 'text--success',
+            ERROR: 'text--error',
+            HINT: 'text--hint',
+            EXPLANATION: 'text--explanation',
+            MUTED: 'text--muted',
+            PROBLEM_NUM: 'text--problem-num',
+            EXECUTED_COMMAND: 'executed-command',
+          },
+        };
+
+        // ===============
+        // 1. Initialization
+        // ===============
+        constructor(problems) {
+          this.problems = problems;
+          this._cacheDomElements();
+          this._initState();
+          this._init();
+        }
+        
+        _cacheDomElements() {
+          this.dom = {
+            body: document.body,
+            themeSelect: document.getElementById('themeSelect'),
+            screen: document.getElementById('screen'),
+            problemEl: document.getElementById('problem'),
+            solutionDisplayEl: document.getElementById('solutionDisplay'),
+            hintBtn: document.getElementById('hintBtn'),
+            showAnsBtn: document.getElementById('showAnsBtn'),
+            skipBtn: document.getElementById('skipBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            timerEl: document.getElementById('timer'),
+          };
+        }
+
+        _initState() {
+          this.state = {
+            currentProblemIndex: 0,
+            commandHistory: [],
+            historyPointer: -1,
+            timerInterval: null,
+            elapsedSeconds: 0,
+            currentInput: null,
+          };
+        }
+        
+        _init() {
+          this._loadTheme();
+          this._displayCurrentProblem();
+          this._startTimer();
+          this._printWelcomeMessages();
+          this._createNewPromptLine();
+          this._bindEvents();
+        }
+
+        // ===============
+        // 2. Event Binding
+        // ===============
+        _bindEvents() {
+          this.dom.themeSelect.addEventListener('change', (e) => this._setTheme(e.target.value));
+          this.dom.hintBtn.addEventListener('click', () => this._showHint());
+          this.dom.showAnsBtn.addEventListener('click', () => this._showAnswer());
+          this.dom.skipBtn.addEventListener('click', () => this._skipProblem());
+          this.dom.resetBtn.addEventListener('click', () => this.reset());
+          this.dom.screen.addEventListener('click', () => {
+            if (this.state.currentInput) {
+              this.state.currentInput.focus();
+            }
+          });
+        }
+        
+        // ===============
+        // 3. Core Logic & State Management
+        // ===============
+        _handleCommandInput(command) {
+          this._addCommandToHistory(command);
+          this._clearSolutionDisplay();
+
+          if (command === 'date') {
+            this._printToScreen(new Date().toString());
+            this._createNewPromptLine();
+            return;
+          }
+
+          const currentProblem = this.problems[this.state.currentProblemIndex];
+
+          if (!currentProblem) {
+            this._printToScreen("学習はすべて完了しています。リセットしてください。", TerminalApp.CONSTANTS.CSS_CLASSES.ERROR);
+            this._createNewPromptLine();
+            return;
+          }
+
+          if (this._isAnswerCorrect(command, currentProblem.answers)) {
+            this._handleCorrectAnswer(currentProblem);
+          } else {
+            this._handleIncorrectAnswer(command);
+          }
+          this._createNewPromptLine();
+        }
+        
+        _handleCorrectAnswer(problem) {
+          if (problem.output) {
+            this._printToScreen(problem.output, TerminalApp.CONSTANTS.CSS_CLASSES.EXPLANATION);
+          }
+          this.state.currentProblemIndex++;
+          this._displayCurrentProblem();
+        }
+
+        _handleIncorrectAnswer(command) {
+          this._printToScreen(`bash: ${command}: command not correct`, TerminalApp.CONSTANTS.CSS_CLASSES.ERROR);
+        }
+
+        _isAnswerCorrect(input, answers) {
+          const normalize = (s) => s.replace(/\s+/g, ' ').trim();
+          const normalizedInput = normalize(input);
+          return answers.some((answer) => normalize(answer) === normalizedInput);
+        }
+
+        _addCommandToHistory(command) {
+          if (!command) return;
+          this.state.commandHistory.push(command);
+          if (this.state.commandHistory.length > TerminalApp.CONSTANTS.TERMINAL_HISTORY_LIMIT) {
+            this.state.commandHistory.shift();
+          }
+          this.state.historyPointer = this.state.commandHistory.length;
+        }
+        
+        _skipProblem() {
+          this._clearSolutionDisplay();
+          if (this.state.currentProblemIndex < this.problems.length -1) {
+            this.state.currentProblemIndex++;
+            this._displayCurrentProblem();
+            this._printToScreen('\n(この問題をスキップしました)\n', TerminalApp.CONSTANTS.CSS_CLASSES.MUTED);
+          } else {
+             this._printToScreen('\n最後の問題です。スキップはできません。\n', TerminalApp.CONSTANTS.CSS_CLASSES.ERROR);
+          }
+           if (this.state.currentInput) this.state.currentInput.focus();
+        }
+        
+        // ★★★ ここからが変更点 ★★★
+        async reset() {
+            // 既存の入力があれば無効化する
+            if (this.state.currentInput) {
+                this.state.currentInput.disabled = true;
+            }
+            this._stopTimer();
+            this.dom.screen.innerHTML = '';
+            this._clearSolutionDisplay();
+
+        const bootMessages = [
+        { text: 'Rebooting system...', delay: 100 },
+        { text: '[    0.012345] Stopping User Manager for UID 1000...', delay: 120 },
+        { text: '[    0.045678] Stopping Network Manager...', delay: 150 },
+        { text: '[    0.067890] Stopping Virtual File Systems...', delay: 180 },
+        { text: '[    0.089012] Unmounting /home...', delay: 180 },
+        { text: '[    0.123456] Unmounting file systems...', delay: 200 },
+        { text: '[    0.234567] System shutdown complete.', delay: 400 },
+        { text: '', delay: 500 },
+
+        { text: 'Booting Linux Learning Environment...', delay: 100 },
+        { text: '[    0.001234] Initializing core components...', delay: 200 },
+        { text: '[    0.023456] Loading kernel modules...', delay: 150 },
+        { text: '[    0.045678] Starting virtual memory manager...', delay: 200 },
+        { text: '[    0.078901] Detecting hardware...', delay: 250 },
+        { text: '[    0.123456] Loading problem sets...', delay: 150 },
+        { text: '[    0.234567] Starting virtual file system...', delay: 250 },
+        { text: `[<span class="${TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS}">  OK  </span>] Mounted /dev/root.`, delay: 100 },
+        { text: `[<span class="${TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS}">  OK  </span>] Activated swap space.`, delay: 100 },
+        { text: `[<span class="${TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS}">  OK  </span>] Reached target Basic System.`, delay: 100 },
+        { text: `[<span class="${TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS}">  OK  </span>] Started Learning Services.`, delay: 100 },
+        { text: `[<span class="${TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS}">  OK  </span>] System ready — Created by kikkun.`, delay: 120 },
+        { text: '', delay: 300 },
+        ];
+
+            // 指定時間待機するヘルパー関数
+            const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+            // 起動メッセージを一行ずつ表示
+            for (const msg of bootMessages) {
+                this._printToScreen(msg.text); // textにHTMLが含まれるため、classNameは指定しない
+                await wait(msg.delay);
+            }
+            
+            // 状態を完全にリセット
+            this._initState();
+            this._displayCurrentProblem();
+            this._resetTimer(); // タイマーもリセットして再開
+            this._printWelcomeMessages();
+            this._createNewPromptLine();
+        }
+        // ★★★ ここまでが変更点 ★★★
+
+        // ===============
+        // 4. UI / DOM Manipulation
+        // ===============
+        _printToScreen(text = '', className = '') {
+          const line = document.createElement('div');
+          // classNameがある場合はspanで囲むが、なければそのままinnerHTMLに入れる
+          // これにより、起動メッセージのようにHTMLタグを含むテキストを直接描画できる
+          if (className) {
+            line.innerHTML = `<span class="${className}">${text}</span>`;
+          } else {
+            line.innerHTML = text;
+          }
+          this.dom.screen.appendChild(line);
+          this._scrollToBottom();
+        }
+        
+        _printWelcomeMessages() {
+          this._printToScreen('# Linuxコマンド学習ターミナルへようこそ！', TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS);
+          this._printToScreen('# コマンドを入力してEnterキーを押してください。', TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS);
+          this._printToScreen('# 正解すると次の問題に進みます。', TerminalApp.CONSTANTS.CSS_CLASSES.SUCCESS);
+          this._printToScreen('');
+        }
+
+        _scrollToBottom() {
+          this.dom.screen.scrollTop = this.dom.screen.scrollHeight;
+        }
+
+        _displayCurrentProblem() {
+          const { currentProblemIndex } = this.state;
+          const currentProblem = this.problems[currentProblemIndex];
+          this._clearSolutionDisplay();
+
+          if (currentProblem) {
+            const { PROBLEM_NUM } = TerminalApp.CONSTANTS.CSS_CLASSES;
+            // ★★★ 修正箇所 ★★★
+            this.dom.problemEl.innerHTML = `<span class="${PROBLEM_NUM}">問題 ${currentProblemIndex + 1} / ${this.problems.length}:</span><br>${currentProblem.question}`;
+          } else {
+            this.dom.problemEl.innerHTML = '全てのコマンドを学習しました！<br>右下のリセットボタンで最初から再挑戦できます。';
+            this._stopTimer();
+          }
+        }
+        
+        _createNewPromptLine() {
+          const promptLine = document.createElement('div');
+          promptLine.className = 'terminal__prompt-line';
+
+          const prompt = document.createElement('span');
+          prompt.className = 'terminal__prompt';
+          prompt.textContent = TerminalApp.CONSTANTS.PROMPT_TEXT;
+
+          const input = document.createElement('input');
+          input.className = 'terminal__input';
+          input.type = 'text';
+          input.autocomplete = 'off';
+          input.autofocus = true;
+
+          promptLine.append(prompt, input);
+          this.dom.screen.appendChild(promptLine);
+
+          this.state.currentInput = input;
+          this.state.currentInput.focus();
+          this.state.currentInput.addEventListener('keydown', this._handleKeyDown.bind(this));
+          this._scrollToBottom();
+        }
+        
+        _lockInput(inputElement) {
+            inputElement.removeEventListener('keydown', this._handleKeyDown.bind(this));
+            inputElement.disabled = true;
+            const parent = inputElement.parentElement;
+            const executedCmdText = document.createElement('span');
+            executedCmdText.className = TerminalApp.CONSTANTS.CSS_CLASSES.EXECUTED_COMMAND;
+            executedCmdText.textContent = inputElement.value;
+            parent.appendChild(executedCmdText);
+            inputElement.remove();
+        }
+
+        _showHint() {
+          const { HINT } = TerminalApp.CONSTANTS.CSS_CLASSES;
+          const currentProblem = this.problems[this.state.currentProblemIndex];
+          this._clearSolutionDisplay();
+          let hintText = '全ての問題をクリアしています。';
+          if (currentProblem) {
+             hintText = `ヒント: ${currentProblem.answers[0]}`;
+          }
+          this.dom.solutionDisplayEl.innerHTML = `<span class="${HINT}">${hintText}</span>`;
+          this.dom.solutionDisplayEl.style.display = 'block';
+        }
+
+        _showAnswer() {
+          const { SUCCESS, EXPLANATION } = TerminalApp.CONSTANTS.CSS_CLASSES;
+          const currentProblem = this.problems[this.state.currentProblemIndex];
+          let solutionText = '';
+
+          if (currentProblem) {
+            const answers = currentProblem.answers.join(' / ');
+            solutionText += `<span class="${SUCCESS}">答え: ${answers}</span><br>`;
+            if (currentProblem.explanation) {
+              solutionText += `<span class="${EXPLANATION}">説明: ${currentProblem.explanation}</span><br>`;
+            }
+            if (currentProblem.output) {
+              solutionText += `<span class="${EXPLANATION}">（想定される出力）<br>${currentProblem.output}</span>`;
+            }
+          } else {
+            solutionText = `<span class="${SUCCESS}">全ての問題をクリアしています。</span>`;
+          }
+          this.dom.solutionDisplayEl.innerHTML = solutionText;
+          this.dom.solutionDisplayEl.style.display = 'block';
+        }
+        
+        _clearSolutionDisplay() {
+          this.dom.solutionDisplayEl.innerHTML = '';
+          this.dom.solutionDisplayEl.style.display = 'none';
+        }
+
+
+        // ===============
+        // 5. Input Handlers
+        // ===============
+        _handleKeyDown(e) {
+          const input = e.target;
+          switch (e.key) {
+            case 'Enter':
+              this._lockInput(input);
+              this._handleCommandInput(input.value.trim());
+              break;
+            case 'ArrowUp':
+              e.preventDefault();
+              this._navigateHistory(input, 'up');
+              break;
+            case 'ArrowDown':
+              e.preventDefault();
+              this._navigateHistory(input, 'down');
+              break;
+            case 'l':
+              if (e.ctrlKey) {
+                e.preventDefault();
+                this.dom.screen.innerHTML = '';
+                this._createNewPromptLine();
+              }
+              break;
+          }
+        }
+
+        _navigateHistory(inputElement, direction) {
+            const { commandHistory } = this.state;
+            if (commandHistory.length === 0) return;
+
+            if (direction === 'up') {
+                if (this.state.historyPointer > 0) {
+                    this.state.historyPointer--;
+                }
+            } else { // down
+                if (this.state.historyPointer < commandHistory.length) {
+                    this.state.historyPointer++;
+                }
+            }
+            
+            inputElement.value = commandHistory[this.state.historyPointer] || '';
+        }
+        
+        // ===============
+        // 6. Theme & Timer
+        // ===============
+        _setTheme(themeName) {
+          this.dom.body.classList.remove(...TerminalApp.CONSTANTS.THEME_CLASSES);
+          if (themeName !== 'default') {
+            this.dom.body.classList.add(`${themeName}-theme`);
+          }
+          localStorage.setItem(TerminalApp.CONSTANTS.THEME_STORAGE_KEY, themeName);
+          this.dom.themeSelect.value = themeName;
+        }
+
+        _loadTheme() {
+          const savedTheme = localStorage.getItem(TerminalApp.CONSTANTS.THEME_STORAGE_KEY) || 'default';
+          this._setTheme(savedTheme);
+        }
+        
+        _updateTimerDisplay() {
+          const minutes = String(Math.floor(this.state.elapsedSeconds / 60)).padStart(2, '0');
+          const seconds = String(this.state.elapsedSeconds % 60).padStart(2, '0');
+          this.dom.timerEl.textContent = `${minutes}:${seconds}`;
+        }
+
+        _startTimer() {
+          if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+          this.state.timerInterval = setInterval(() => {
+            this.state.elapsedSeconds++;
+            this._updateTimerDisplay();
+          }, 1000);
+        }
+
+        _stopTimer() {
+          clearInterval(this.state.timerInterval);
+        }
+
+        _resetTimer() {
+          this._stopTimer();
+          this.state.elapsedSeconds = 0;
+          this._updateTimerDisplay();
+          this._startTimer();
+        }
+      }
+
+      // --- App Initialization ---
+      new TerminalApp(problems);
+    });
+  </script>
+</body>
+</html>
+
+<!--
+<!DOCTYPE html>
+<html lang="ja">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>押立神社</title>
@@ -9,7 +944,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png">
 </head>
 <body>
-    <!--
+    
     <header>
         <div class="container">
             <img src="oshitate_8.png" alt="押立神社のロゴ" style="margin-top: 10px;">
